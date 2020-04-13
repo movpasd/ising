@@ -78,8 +78,8 @@ def _anim_func_spins(spins, image):
 
 
 def animate_spins(simulation, axes, show=False, repeat=1,
-            resize=True, noticks=True, imshow_kwargs=None,
-            anim_kwargs=None):
+                  resize=True, noticks=True, imshow_kwargs=None,
+                  anim_kwargs=None):
     """Create a FuncAnimation object based on a particular simulation"""
 
     if anim_kwargs is None:
@@ -96,7 +96,7 @@ def animate_spins(simulation, axes, show=False, repeat=1,
 
     anim = mpl.animation.FuncAnimation(
         fig, _anim_func_spins,
-        frames=repeat*tuple(simulation[t] for t in range(iternum)),
+        frames=repeat * tuple(simulation[t] for t in range(iternum)),
         fargs=(image,),
         **anim_kwargs
     )
@@ -107,3 +107,30 @@ def animate_spins(simulation, axes, show=False, repeat=1,
         plt.show()
 
     return anim
+
+
+def mosaic(ensemble):
+    """Draw out a datagen.Ensemble as a pretty mosaic animation"""
+
+    sysnum = ensemble.sysnum
+    N = int(np.ceil(np.sqrt(sysnum)))
+
+    fig = plt.figure(figsize=(5, 5))
+    anims = []
+
+    k = 0
+    pad = 0.1
+
+    for i in range(N):
+        for j in range(N):
+
+            if k < sysnum:
+                ax = fig.add_axes(((i + pad) / N, (j + pad) / N,
+                                   (1 - 2 * pad) / N, (1 - 2 * pad) / N))
+                anims.append(animate_spins(
+                    ensemble.asarray()[:, k, ...], ax))
+            k += 1
+
+    plt.show()
+    plt.clf()
+    plt.close()
