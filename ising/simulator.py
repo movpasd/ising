@@ -44,7 +44,7 @@ def new_ensemble(grid_shape, sysnum, p=0.5, identical=False):
 
     if identical:
         a = 2 * (npr.rand(*grid_shape) > p) - 1
-        return np.repeat(a[np.newaxis, ...], sysnum, axis=0)
+        return np.repeat(a[nwxs, ...], sysnum, axis=0)
     else:
         return 2 * (npr.rand(sysnum, *grid_shape) > p) - 1
 
