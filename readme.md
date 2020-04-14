@@ -2,4 +2,5 @@
 
 "The Ising Model of a Ferromagnet" - my Part II Computational Physics project
 
-This is the main package I wrote to do the calculations.
+ising: main package used for stuff. Tried to make it as standalone as possible
+tasks: the actual code for doing the tasks
