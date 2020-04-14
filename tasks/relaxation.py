@@ -1,7 +1,7 @@
 """Measure relaxation times"""
 
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from pathlib import Path
 
 from ising import datagen, loadingbar, plotter, simulator, thermo
@@ -74,7 +74,7 @@ def display_mosaic(datapath, dataset_select, ensemble_select):
     plotter.animate_mosaic(ens, show=True)
 
 
-def analyse(datapath):
+def analyse(datapath, rolavg_window=100):
     """Analyse and save magnetisation data"""
 
     datapath = Path(datapath)
@@ -86,8 +86,8 @@ def analyse(datapath):
     datasets[1].load()
 
     # Square magnetisation data, indexed by:
-    # [dataset, ensemble, time]
-    sqmags = np.array([
+    # [dataset, ensemble][time]
+    sqmags = [
         [
             # ensemble.asarray(): [time, system, Nx, Ny]
             # -> square_mag(...): [time, system]
@@ -96,10 +96,12 @@ def analyse(datapath):
             for ensemble in dataset.ensembles
         ]
         for dataset in datasets
-    ])
+    ]
 
-    diffs = np.diff(sqmags, axis=-1)
-    smoothed_diffs = thermo.rolling_average(diffs)
+    diffs = [[np.diff(values) for values in dataset_values]
+             for dataset_values in sqmags]
+    smoothed_diffs = [[thermo.rolling_average(
+        x, rolavg_window) for x in y] for y in diffs]
 
     return sqmags, diffs, smoothed_diffs
 
@@ -119,14 +121,14 @@ def graph(resultspath, *args, save=True, show=False):
             dc = 1 / 11
 
             for values in arg[index]:
-                plt.plot(values, (1 - c, 0, c))
+                plt.plot(values, color=(1 - c, 0, c))
                 c += dc
 
             plt.title(f"{filename}, initially {init_condition}")
-            plt.legend([k * 0.1 for k in range(11)])
+            plt.legend([f"{k * 0.1: .2f}" for k in range(11)])
 
             if save:
-                plt.savefig(path / f"{filename}-a")
+                plt.savefig(path / f"a-{filename}.pdf")
 
             if show:
                 plt.show()
