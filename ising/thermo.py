@@ -14,6 +14,14 @@ def magnetisation(a):
     return np.mean(a, axis=(-1, -2))
 
 
+def square_mag(a):
+    """
+    Convenience function to calculate the square of magnetisation
+    """
+
+    return np.mean(a, axis=(-1, -2))**2
+
+
 def autocorrelation(samples, maxtau=None):
     """
     Calculate the auto-correlation of a sampled function of time
@@ -30,6 +38,12 @@ def autocorrelation(samples, maxtau=None):
     taus = np.arange(maxtau)
 
 
+def rolling_average(values, window):
+
+    cs = np.cumsum(values)
+    return (cs[window:] - cs[:-window]) / window
+
+
 def isflat(testfunc, ensemble, timescale, tolerance, absolute=True):
     """
     Determines when and if a test function is ~constant over time
@@ -44,6 +58,8 @@ def isflat(testfunc, ensemble, timescale, tolerance, absolute=True):
     RETURNS: (ensemble.iternum, - timescale)-array
     """
 
+    iternum = ensemble.iternum
+
     # First, we calculate the ensemble average of the quantity
     # as it varies over time
     ens_avgs = np.array(ensemble.ensemble_avg(testfunc))
@@ -52,8 +68,7 @@ def isflat(testfunc, ensemble, timescale, tolerance, absolute=True):
     diffs = np.diff(ens_avgs)
 
     # Take a rolling average of the changes over the timescale
-    cs = np.cumsum(diffs)
-    smoothed_diffs = (cs[timescale:] - cs[:timescale]) / timescale
+    smoothed_diffs = rolling_average(diffs, timescale)
 
     # If the smoothed difference is less than the tolerance,
     # the test function can be said to be ~constant.
@@ -62,8 +77,7 @@ def isflat(testfunc, ensemble, timescale, tolerance, absolute=True):
     if absolute:
         isflats = smoothed_diffs < tolerance
     else:
-        cs = np.cumsum(ens_avgs)
-        smoothed_avgs = (cs[timescale:] - cs[:timescale]) / timescale
+        smoothed_avgs = rolling_average(ens_avgs, timescale)
         isflats = smoothed_diffs / smoothed_avgs < tolerance
 
     return isflats
