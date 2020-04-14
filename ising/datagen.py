@@ -3,6 +3,7 @@
 import numpy as np
 import json
 from pathlib import Path
+from warnings import warn
 
 from . import simulator, thermo, loadingbar
 
@@ -70,6 +71,26 @@ class DataSet:
 
             self.add_ensemble(ens)
 
+    def wipe(self):
+        """Wipes all the data from the folder"""
+
+        with open(self.path / "metadata.json", "r") as mdfile:
+            metadata = json.load(mdfile)
+
+            for k in range(len(metadata)):
+
+                try:
+                    
+                    (self.path / f"ens-{k}.npy").unlink()
+                
+                except FileNotFoundError:
+
+                    warn(str(self.path / f"ens-{k}.npy") + " not found :(")
+
+
+        (self.path / "metadata.json").unlink()
+
+
     def add_ensemble(self, ens, save=False):
 
         self.ensembles.append(ens)
@@ -109,20 +130,18 @@ class Ensemble:
         if initialise:
             self.reset(regen_init=True)
 
-    def simulate(self, iternum, reset=True, regen_init=False, printbar=False):
-
-        if printbar:
-            bar = loadingbar.LoadingBar(iternum)
+    def simulate(self, iternum, reset=True, regen_init=False, verbose=False):
 
         if reset:
             self.reset(regen_init=regen_init)
 
-        if printbar:
+        if verbose:
+            bar = loadingbar.LoadingBar(iternum)
             bar.print_init()
 
         for k in range(iternum):
             self.next()
-            if printbar:
+            if verbose:
                 bar.print_next()
 
     def next(self):
@@ -164,7 +183,7 @@ class Ensemble:
         """
         Calculates stdev of property across ensemble over time
 
-        func: callable -- takes a microstate
+        func: callable -- must take a microstate
         """
 
         if std_kwargs is None:
