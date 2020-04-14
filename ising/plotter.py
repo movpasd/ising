@@ -118,9 +118,9 @@ def _anim_func_mosaic(ens_state, image_list):
     return tuple(image_list)
 
 
-def mosaic(ensemble, fig=None,
-           pad=0.05,
-           show=False, imshow_kwargs=None, anim_kwargs=None):
+def animate_mosaic(ensemble, fig=None,
+                   pad=0.05, bbox=(0, 0, 1, 1),
+                   show=False, imshow_kwargs=None, anim_kwargs=None):
     """Draw out a datagen.Ensemble as a pretty mosaic animation"""
 
     if anim_kwargs is None:
@@ -148,8 +148,14 @@ def mosaic(ensemble, fig=None,
             if k < sysnum:
 
                 # Create grid of axes
-                ax = fig.add_axes(((i + pad) / N, (j + pad) / N,
-                                   (1 - 2 * pad) / N, (1 - 2 * pad) / N))
+                left, bottom, width, height = bbox
+                bounds = (
+                    (left + (i + pad) / N) * (width - pad),
+                    (bottom + (j + pad) / N) * (height - pad),
+                    ((1 - pad) / N) * (width - pad),
+                    ((1 - pad) / N) * (height - pad)
+                )
+                ax = fig.add_axes(bounds)
                 axes_list.append(ax)
 
                 # Plot out initial spins
