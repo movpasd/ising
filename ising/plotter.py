@@ -109,28 +109,67 @@ def animate_spins(simulation, axes, show=False, repeat=1,
     return anim
 
 
-def mosaic(ensemble):
+def _anim_func_mosaic(ens_state, image_list):
+
+    for sys_state, image in zip(ens_state, image_list):
+
+        image.set_data(sys_state)
+
+    return tuple(image_list)
+
+
+def mosaic(ensemble, fig=None,
+           pad=0.05,
+           show=False, imshow_kwargs=None, anim_kwargs=None):
     """Draw out a datagen.Ensemble as a pretty mosaic animation"""
 
-    sysnum = ensemble.sysnum
-    N = int(np.ceil(np.sqrt(sysnum)))
+    if anim_kwargs is None:
+        anim_kwargs = {}
 
-    fig = plt.figure(figsize=(5, 5))
-    anims = []
+    anim_kwargs.setdefault("interval", 50)
+    anim_kwargs.setdefault("repeat_delay", 500)
+
+    sysnum = ensemble.sysnum
+    iternum = ensemble.iternum
+    N = int(np.ceil(np.sqrt(sysnum)))
+    ens_arr = ensemble.asarray()
+
+    if fig is None:
+        fig = plt.figure(figsize=(5, 5))
+
+    axes_list = []
+    image_list = []
 
     k = 0
-    pad = 0.1
 
     for i in range(N):
         for j in range(N):
 
             if k < sysnum:
+
+                # Create grid of axes
                 ax = fig.add_axes(((i + pad) / N, (j + pad) / N,
                                    (1 - 2 * pad) / N, (1 - 2 * pad) / N))
-                anims.append(animate_spins(
-                    ensemble.asarray()[:, k, ...], ax))
+                axes_list.append(ax)
+
+                # Plot out initial spins
+                init_spins = ens_arr[0, k, ...]
+                im = plot_spins(init_spins, axes=ax, resize=False,
+                                imshow_kwargs=imshow_kwargs)
+                image_list.append(im)
+
             k += 1
 
-    plt.show()
-    plt.clf()
-    plt.close()
+    anim = mpl.animation.FuncAnimation(
+        fig, _anim_func_mosaic,
+        frames=tuple(ens_arr[t, ...] for t in range(iternum)),
+        fargs=(image_list,),
+        **anim_kwargs
+    )
+
+    if show:
+
+        plt.figure(fig.number)
+        plt.show()
+
+    return fig, axes_list, anim
