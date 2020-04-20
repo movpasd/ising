@@ -3,6 +3,8 @@ import matplotlib as mpl
 import matplotlib.animation
 import matplotlib.pyplot as plt
 
+from . import loadingbar
+
 
 def plot_spins(spins, axes=None,
                resize=True, noticks=True, show=False,
@@ -109,16 +111,24 @@ def animate_spins(simulation, axes, show=False, repeat=1,
     return anim
 
 
-def _anim_func_mosaic(ens_state, image_list):
+def _anim_func_mosaic(frame, image_list, text, lbar):
+
+    t, ens_state = frame
 
     for sys_state, image in zip(ens_state, image_list):
-
         image.set_data(sys_state)
 
-    return tuple(image_list)
+    if lbar is not None:
+        lbar.print_next()
+
+    if text is None:
+        return tuple(image_list)
+    else:
+        text.set_text(str(t))
+        return tuple(image_list) + (text,)
 
 
-def animate_mosaic(ensemble, fig=None,
+def animate_mosaic(ensemble, fig=None, timestamp=False, verbose=False,
                    pad=0.05, bbox=(0, 0, 1, 1),
                    show=False, imshow_kwargs=None, anim_kwargs=None):
     """Draw out a datagen.Ensemble as a pretty mosaic animation"""
@@ -150,10 +160,10 @@ def animate_mosaic(ensemble, fig=None,
                 # Create grid of axes
                 left, bottom, width, height = bbox
                 bounds = (
-                    (left + (i + pad) / N) * (width - pad),
-                    (bottom + (j + pad) / N) * (height - pad),
-                    ((1 - pad) / N) * (width - pad),
-                    ((1 - pad) / N) * (height - pad)
+                    (left + (i + pad) / N) * (width - pad / N),
+                    (bottom + (j + pad) / N) * (height - pad / N),
+                    ((1 - pad) / N) * (width - pad / N),
+                    ((1 - pad) / N) * (height - pad / N)
                 )
                 ax = fig.add_axes(bounds)
                 axes_list.append(ax)
@@ -166,10 +176,22 @@ def animate_mosaic(ensemble, fig=None,
 
             k += 1
 
+    if timestamp:
+        text = axes_list[0].text(0, 0, "", color=(1, 0, 0), weight="bold",
+                                 ha="left", va="top")
+    else:
+        text = None
+
+    if verbose:
+        lbar = loadingbar.LoadingBar(iternum)
+        lbar.print_init()
+    else:
+        lbar = None
+
     anim = mpl.animation.FuncAnimation(
         fig, _anim_func_mosaic,
-        frames=tuple(ens_arr[t, ...] for t in range(iternum)),
-        fargs=(image_list,),
+        frames=tuple((t, ens_arr[t, ...]) for t in range(iternum)),
+        fargs=(image_list, text, lbar),
         **anim_kwargs
     )
 
