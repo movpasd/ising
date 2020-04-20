@@ -22,26 +22,62 @@ def square_mag(a):
     return np.mean(a, axis=(-1, -2))**2
 
 
-def autocorrelation(samples, maxtau=None):
+def autocovariance(samples, maxtau=None, axis=-1, rem_dc=True):
     """
     Calculate the auto-correlation of a sampled function of time
 
     samples: float (iternum,)-array
     maxtau: int <= iternum
+    rem_dc: bool -- whether to remove the DC component of the sampling
     """
+
+    iternum = samples.shape[axis]
 
     if maxtau is None:
         maxtau = samples // 2
     else:
         assert type(maxtau) is int and maxtau <= iternum
 
-    taus = np.arange(maxtau)
+    if rem_dc:
+        samples = np.copy(samples - np.mean(samples))
+
+    autoc_values = []
+    for tau in range(maxtau):
+
+        # Annoyingly, there's no way to pick an arbitrary axis using
+        # slice notation so I have to use np.take
+
+        # This is equivalent to s1 = samples[:,:,:-tau,:]; s2 = ..
+        # with :'s in every axis but one
+        s1 = np.take(samples, range(0, iternum - tau), axis=axis)
+        s2 = np.take(samples, range(tau, iternum), axis=axis)
+        autoc_values.append(np.mean(s1 * s2, axis=axis))
+
+    return np.stack(autoc_values, axis=axis)
 
 
-def rolling_average(values, window):
+def autocorrelation(samples, maxtau=None, axis=-1):
 
-    cs = np.cumsum(values)
-    return (cs[window:] - cs[:-window]) / window
+    autocov = autocovariance(samples, maxtau, axis)
+    return autocov / np.take(autocov, [0], axis=axis)
+
+
+def rolling_average(values, window, axis=-1):
+    """Take rolling average of array over axis"""
+
+    # This solution is a bit messy because np.convolve only likes
+    # 1d arrays and because slicing is messy if you need to take
+    # values over an arbitrary axis
+
+    # Basic idea is: the difference in the cumulated sum before and
+    # after the window divided by the window is the average
+
+    cs = np.cumsum(values, axis=axis)
+    l = values.shape[axis]
+    cs1 = np.take(cs, range(0, l - window), axis=axis)
+    cs2 = np.take(cs, range(window, l), axis=axis)
+
+    return (cs2 - cs1) / window
 
 
 def isflat(testfunc, ensemble, timescale, tolerance, absolute=True):
