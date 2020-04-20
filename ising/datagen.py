@@ -11,7 +11,7 @@ from . import simulator, thermo, loadingbar
 class DataSet:
     """Collection of simulated ensembles, allows saving/loading"""
 
-    def __init__(self, path, ensembles=None):
+    def __init__(self, path, ensembles=None, load=False):
         """path: str"""
 
         if ensembles is None:
@@ -21,6 +21,9 @@ class DataSet:
 
         self.path = Path(path)
         self.path.mkdir(parents=True, exist_ok=True)
+
+        if load:
+            self.load()
 
     def save(self):
 
