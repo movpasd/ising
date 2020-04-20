@@ -87,27 +87,27 @@ def analyse(datapath, rolavg_window=100):
 
     # Square magnetisation data, indexed by:
     # [dataset, ensemble][time]
-    sqmags = [
-        [
+    # dataset -- 0: aligned, 1: random
+    mags = np.array([
+        np.array([
             # ensemble.asarray(): [time, system, Nx, Ny]
-            # -> square_mag(...): [time, system]
+            # -> magnetisation(...): [time, system]
             # -> np.mean(..., axis=-1): [time]
-            np.mean(thermo.square_mag(ensemble.asarray()), axis=-1)
+            np.mean(thermo.magnetisation(ensemble.asarray()), axis=-1)
             for ensemble in dataset.ensembles
-        ]
+        ])
         for dataset in datasets
-    ]
+    ])
 
-    diffs = [[np.diff(values) for values in dataset_values]
-             for dataset_values in sqmags]
-    smoothed_diffs = [[thermo.rolling_average(
-        x, rolavg_window) for x in y] for y in diffs]
+    sqmags = mags**2
+    diffs = np.diff(sqmags, axis=-1)
+    smoothed_diffs = thermo.rolling_average(diffs, rolavg_window, axis=-1)
 
-    return sqmags, diffs, smoothed_diffs
+    return mags, sqmags, diffs, smoothed_diffs
 
 
 def graph(resultspath, *args, save=True, show=False):
-    """Takes output from analyse"""
+    """Takes output from analyse() and spits out some pretty graphs"""
 
     path = Path(resultspath)
 
@@ -128,7 +128,7 @@ def graph(resultspath, *args, save=True, show=False):
             plt.legend([f"{k * 0.1: .2f}" for k in range(11)])
 
             if save:
-                plt.savefig(path / f"a-{filename}.pdf")
+                plt.savefig(path / f"{init_condition}-{filename}.pdf")
 
             if show:
                 plt.show()
