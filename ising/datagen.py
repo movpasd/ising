@@ -25,14 +25,21 @@ class DataSet:
         if load:
             self.load()
 
-    def save(self):
+    def save(self, ens_index=None):
 
         with open(self.path / "metadata.json", "w") as outfile:
             json.dump(self.get_metadata(), outfile, indent=4)
 
-        for k in range(len(self.ensembles)):
-            np.save(self.path / ("ens-" + str(k) + ".npy"),
-                    self.ensembles[k].asarray())
+        if ens_index is None:
+
+            for k in range(len(self.ensembles)):
+                np.save(self.path / ("ens-" + str(k) + ".npy"),
+                        self.ensembles[k].asarray())
+
+        else:
+
+            np.save(self.path / ("ens-" + str(ens_index) + ".npy"),
+                    self.ensembles[ens_index].asarray())
 
     def get_metadata(self):
 
@@ -66,7 +73,15 @@ class DataSet:
             ens_data = np.load(self.path / f"ens-{k}.npy")
 
             # Check data integrity
-            assert ens_data.shape == (iternum, ens.sysnum, *ens.grid_shape)
+            if not ens_data.shape == (iternum, ens.sysnum, *ens.grid_shape):
+                error_message = (
+                    f"Integrity check failure\n"
+                    f"data path: {self.path}\n"
+                    f"ens. index: {k}\n\n"
+                    f"Ensemble data had shape {ens_data.shape} "
+                    f"when {(iternum, ens.sysnum, *ens.grid_shape)} was expected!"
+                )
+                raise RuntimeError(error_message)
 
             ens.init_state = ens_data[0]
             ens.iterations = list(ens_data)
@@ -83,16 +98,14 @@ class DataSet:
             for k in range(len(metadata)):
 
                 try:
-                    
+
                     (self.path / f"ens-{k}.npy").unlink()
-                
+
                 except FileNotFoundError:
 
                     warn(str(self.path / f"ens-{k}.npy") + " not found :(")
 
-
         (self.path / "metadata.json").unlink()
-
 
     def add_ensemble(self, ens, save=False):
 
