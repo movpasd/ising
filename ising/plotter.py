@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.animation
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 from . import loadingbar
 
@@ -130,7 +131,8 @@ def _anim_func_mosaic(frame, image_list, text, lbar):
 
 def animate_mosaic(ensemble, fig=None, timestamp=False, verbose=False,
                    pad=0.05, bbox=(0, 0, 1, 1),
-                   show=False, imshow_kwargs=None, anim_kwargs=None):
+                   show=False, imshow_kwargs=None, anim_kwargs=None,
+                   saveas=None):
     """Draw out a datagen.Ensemble as a pretty mosaic animation"""
 
     if anim_kwargs is None:
@@ -194,6 +196,11 @@ def animate_mosaic(ensemble, fig=None, timestamp=False, verbose=False,
         fargs=(image_list, text, lbar),
         **anim_kwargs
     )
+
+    if saveas is not None:
+
+        saveas = Path(saveas).with_suffix(".mp4")
+        anim.save(saveas)
 
     if show:
 
