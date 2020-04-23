@@ -75,7 +75,7 @@ def display_mosaic(datapath, dataset_select, ensemble_select):
 
 
 def analyse(datapath, rolavg_window=100):
-    """Analyse and save magnetisation data"""
+    """Analyse and return magnetisation data"""
 
     datapath = Path(datapath)
 
