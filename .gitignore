@@ -1,10 +1,12 @@
 
-main.py
+readme.txt
+*.py
+*.mp4
+
 **/__pycache__/
 **/__pycache__/
+
 notes/
 results/
 data/
 unused/
-readme.txt
-*.mp4
