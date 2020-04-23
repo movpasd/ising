@@ -1,6 +1,5 @@
 
 readme.txt
-*.py
 *.mp4
 **/__pycache__/
 **/__pycache__/
@@ -8,4 +7,3 @@ notes/
 results/
 data/
 unused/
-nightrun.py
