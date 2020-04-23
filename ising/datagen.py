@@ -59,8 +59,8 @@ class DataSet:
 
         self.ensembles = []
 
-        with open(self.path / "metadata.json", "r") as infile:
-            metadata = json.load(infile)
+        with open(self.path / "metadata.json", "r") as mdfile:
+            metadata = json.load(mdfile)
 
         ensemble_count = len(metadata)
 
