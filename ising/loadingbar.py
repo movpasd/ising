@@ -43,7 +43,8 @@ class LoadingBar:
 
         else:
 
-            warn("LoadingBar not running - forgot to initialise?")
+            self.print_init()
+            self.print_next()
 
     def interrupt(self):
         self.reset(completed=False)
