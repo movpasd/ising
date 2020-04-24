@@ -93,6 +93,7 @@ class DataSet:
         """Wipes all the data from the folder"""
 
         with open(self.path / "metadata.json", "r") as mdfile:
+
             metadata = json.load(mdfile)
 
             for k in range(len(metadata)):
@@ -105,7 +106,11 @@ class DataSet:
 
                     warn(str(self.path / f"ens-{k}.npy") + " not found :(")
 
-        (self.path / "metadata.json").unlink()
+        with open(self.path / "metadata.json", "w") as mdfile:
+
+            mdfile.write("[]")
+
+        self.load()
 
     def add_ensemble(self, ens, save=False):
 
@@ -150,10 +155,11 @@ class Ensemble:
 
         if reset:
             self.reset(regen_init=regen_init)
+            iternum -= 1  # This makes sure self.iternum matches up with
+                          # the parameter passed onto this function
 
         if verbose:
             bar = loadingbar.LoadingBar(iternum)
-            bar.print_init()
 
         for k in range(iternum):
             self.next()
@@ -221,3 +227,14 @@ class Ensemble:
         """
 
         return np.array(self.iterations)
+
+    def trim_init(self, trimcount):
+        """
+        Remove the first trimcount elements of data
+
+        Useful to get rid of relaxation time
+        """
+
+        self.iternum -= trimcount
+        self.iterations = self.iterations[trimcount:]
+        self.init_state = self.iterations[0]
