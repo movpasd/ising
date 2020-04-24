@@ -186,7 +186,6 @@ def animate_mosaic(ensemble, fig=None, timestamp=False, verbose=False,
 
     if verbose:
         lbar = loadingbar.LoadingBar(iternum)
-        lbar.print_init()
     else:
         lbar = None
 
@@ -194,6 +193,7 @@ def animate_mosaic(ensemble, fig=None, timestamp=False, verbose=False,
         fig, _anim_func_mosaic,
         frames=tuple((t, ens_arr[t, ...]) for t in range(iternum)),
         fargs=(image_list, text, lbar),
+        init_func=lambda: 0,
         **anim_kwargs
     )
 
