@@ -5,4 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 
-from tasks import relaxation
+from tasks import autoc
+
+
+autoc.generate(wipe=True)
