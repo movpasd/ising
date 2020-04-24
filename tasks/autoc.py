@@ -15,21 +15,26 @@ resultspath = Path(__file__).parents[1] / "results/autoc"
 # GENERATION PARAMETERS
 # ----------------------------------------------------------------------------
 
-# The systems are indexed by id_N and id_b for the indices of N and b
-# and this allows conversion between (id_N, id_b) <--> k, the index
+# The systems are indexed by id_N and id_b (also called i and j),
+# we can convert between (id_N, id_b) <--> k, the index
 # which labels ensembles in the datagen.DataSet.
 
 Ns = [5, 10, 30, 50, 100]
-bs = [0, 0.2, 0.4, 0.42, 0.43, 0.44, 0.45, 0.46, 0.5, 0.8, 1.0]
+bs = [
+    0, 0.2, 0.3, 0.4,
+    0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49,
+    0.5, 0.6, 0.7, 0.8, 1.0
+]
+kcount = len(Ns) * len(bs)
 
 # These arrays help quickly switch from (id_N, id_b) indexing to k-indexing
 Nb_to_ks = [[i * len(bs) + j for j in range(len(bs))] for i in range(len(Ns))]
 k_to_Nbs = [(Ns[k // len(bs)], bs[k % len(bs)])
-            for k in range(len(Ns) * len(bs))]
+            for k in range(kcount)]
 
 sysnum = 1
-relaxtime = 200
-iternum = 500
+relaxtime = 1000
+iternum = 5000
 b_crit = 0.44
 
 
@@ -148,7 +153,75 @@ def analyse():
     # Save the e-folding lengths
     np.save(datapath / "tau_es.npy", np.array(tau_es))
 
-
     print("Done!")
 
 
+def results():
+    """Generate human-readable content from analysed results"""
+
+    # # 1. tau_e graph
+    # # ------------------------------------------------------------
+
+    # tau_es = np.load(datapath / "tau_es.npy")
+
+    # # I want to plot tau_e against b for various Ns. Annoyingly this
+    # # means I have to do some index juggling.
+
+    # # This is all because of the way I set up datagen.DataSet... oh well.
+
+    # for i, N in enumerate(Ns):
+
+    #     # values to plot against b for the specific N
+    #     vals = []
+
+    #     for j, b in enumerate(bs):
+
+    #         k = Nb_to_ks[i][j]
+    #         vals.append(tau_es[k])
+
+    #     plt.plot(bs, vals, "+")
+
+    # plt.legend([f"N={N}" for N in Ns])
+
+    # plt.show()
+
+    # 2. magnetisation graphs
+    # ------------------------------------------------------------
+
+    # mags_list = [np.load(datapath / f"mags-{k}.npy") for k in range(kcount)]
+
+    # for i, N in enumerate(Ns):
+
+    #     plt.title(f"Magnetisations N={N}")
+    #     plt.xlabel("t")
+    #     plt.ylabel("M")
+
+    #     for j, b in enumerate(bs):
+
+    #         k = Nb_to_ks[i][j]
+    #         vals = mags_list[k]
+    #         plt.plot(vals, color=(1 - b, 0, b))
+
+    #     plt.show()
+    #     plt.close()
+
+    # 3. autoc graphs
+    # ------------------------------------------------------------
+
+    autocs_list = [
+        np.load(datapath / f"autocs-{k}.npy") for k in range(kcount)]
+
+    for i, N in enumerate(Ns):
+
+        plt.title(f"Auto-correlation N={N}")
+        plt.xlabel("$ \\tau $")
+        plt.ylabel("$ A(\\tau) $")
+
+        for j, b in enumerate(bs):
+
+            k = Nb_to_ks[i][j]
+            vals = autocs_list[k]
+            plt.plot(vals, color=(1 - b, 0, b))
+
+        plt.show()
+        plt.close()

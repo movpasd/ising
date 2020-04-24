@@ -8,6 +8,6 @@ from pathlib import Path
 from tasks import autoc
 
 
-# autoc.generate(wipe=False)
-# autoc.analyse()
+autoc.generate(wipe=False)
+autoc.analyse()
 autoc.results()
