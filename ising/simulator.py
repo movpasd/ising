@@ -158,7 +158,7 @@ def run(init_spins, iternum, b=1, h=0, verbose=False, filename=None):
     """
 
     if verbose:
-        bar = loadingbar.LoadingBar(iternum)
+        bar = loadingbar.LoadingBar(iternum - 1)
 
     # Useful throughout the function
     Nx, Ny = init_spins.shape
@@ -172,14 +172,11 @@ def run(init_spins, iternum, b=1, h=0, verbose=False, filename=None):
 
     if verbose:
         print(f"Running simulation, {iternum} iterations")
-        bar.print_init()
 
     # Initial state
     simulation = np.empty(output_shape)
     spins = init_spins
     simulation[0] = spins
-    if verbose:
-        bar.print_next()
 
     # Step through simulation
     for k in range(1, iternum):
