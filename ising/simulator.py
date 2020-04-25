@@ -55,12 +55,17 @@ def new_ensemble(grid_shape, sysnum, p=0.5, identical=False, randflip=False):
     return ret
 
 
-def _rand_flip_spin(spins, bs, hs, Nx, Ny):
+def _rand_flip_spin(spins, b, h, Nx, Ny, const_h=True, const_b=True):
     """
     Helper function for iterate()
 
     [!] modifies spins array in-place
     """
+
+    if not const_h:
+        h = h[i, j]
+    if not const_b:
+        b = b[i, j]
 
     # Pick out one random spin
     i = npr.randint(0, Nx)
@@ -72,15 +77,15 @@ def _rand_flip_spin(spins, bs, hs, Nx, Ny):
         spins[i - 1, j] +
         spins[i, (j + 1) % Ny] +
         spins[i, j - 1] +
-        hs[i, j]
+        h
     ) * spins[i, j]
 
     # Choose whether to flip it or not!
-    if np.exp(-2 * bs[i, j] * dE) > npr.rand():
+    if np.exp(-2 * b * dE) > npr.rand():
         spins[i, j] *= -1
 
 
-def iterate(spins, b=1, h=0):
+def iterate(spins, b=1, h=0, inplace=False, const_h=True, const_b=True):
     """
     Step through one iteration on the spins.
 
@@ -91,25 +96,20 @@ def iterate(spins, b=1, h=0):
     RETURNS: int (Nx, Ny)-array
     """
 
-    # I'm going to be modifying spins in-place, so first I make a copy
-    # of the spins grid.
-    spins = np.copy(spins)
+    if not inplace:
+        # I'm going to be modifying spins in-place, so first I make a copy
+        # of the spins grid.
+        spins = np.copy(spins)
 
     Nx, Ny = spins.shape
 
-    # I wanted this to work for spatially varying h, so the general
-    # case is to just cast it to an array of the same size as spins.
-
-    bs = np.broadcast_to(b, spins.shape)
-    hs = np.broadcast_to(h, spins.shape)
-
     for k in range(spins.size):
-        _rand_flip_spin(spins, bs, hs, Nx, Ny)
+        _rand_flip_spin(spins, b, h, Nx, Ny, const_h, const_b)
 
     return spins
 
 
-def iterate_ensemble(ensemble, b=1, h=0):
+def iterate_ensemble(ensemble, b=1, h=0, const_h=True, const_b=True):
     """
     Step through one iteration on an ensemble.
     """
@@ -119,7 +119,8 @@ def iterate_ensemble(ensemble, b=1, h=0):
     sysnum = ensemble.shape[0]
 
     for k in range(sysnum):
-        ensemble[k] = iterate(ensemble[k], b, h)
+        iterate(ensemble[k], b, h, inplace=True,
+                const_h=const_h, const_b=const_b)
 
     return ensemble
 

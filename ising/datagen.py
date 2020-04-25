@@ -147,9 +147,48 @@ class Ensemble:
         self.sysnum = sysnum
         self.identical = identical
         self.p = p
-        self.b = b
-        self.h = h
         self.randflip = randflip
+
+        hs = np.asarray(h)
+        self.hmode = ""
+
+        # for time-varying and space-varying magnetisation
+        if len(hs.shape) == 0:
+
+            self.hmode = "single"
+            self.h = h
+            self.const_h = True
+
+        elif len(hs.shape) == 1:
+
+            self.hmode = "time"
+            self.hs = h
+            self.hcount = 0
+            self.h = hs[self.hcount]
+            self.const_h = True  # constant in space
+
+        elif len(hs.shape) == 2:
+
+            assert bs.shape == grid_shape
+            self.hmode = "grid"
+            self.h = h
+            self.const_h = False
+
+        elif len(hs.shape) == 3:
+
+            assert hs.shape[1:] == grid_shape
+            self.hmode = "timegrid"
+            self.hs = h
+            self.hcount = 0
+            self.h = hs[self.hcount]
+            self.const_h = False
+
+        else:
+
+            raise ValueError("invalid h shape")
+
+        self.const_b = True
+        self.b = b
 
         if initialise:
             self.reset(regen_init=True)
@@ -171,10 +210,16 @@ class Ensemble:
 
     def next(self):
 
-        ens_state = self.iterations[-1]
         self.iterations.append(
-            simulator.iterate_ensemble(ens_state, b=self.b, h=self.h))
+            simulator.iterate_ensemble(self.iterations[-1],
+                                       b=self.b, h=self.h,
+                                       const_h=self.const_h)
+        )
         self.iternum += 1
+
+        if self.hmode == "time" or self.hmode == "timegrid":
+            self.hcount = (self.hcount + 1) % self.hs.shape[0]
+            self.h = self.hs[self.hcount]
 
     def reset(self, regen_init=False):
         """
@@ -245,7 +290,6 @@ class Ensemble:
         self.iternum -= trimcount
         self.iterations = self.iterations[trimcount:]
         self.init_state = self.iterations[0]
-
 
     def do_randflip(self):
         """
