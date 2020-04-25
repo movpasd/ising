@@ -187,11 +187,14 @@ class Ensemble:
         if regen_init:
             self.init_state = simulator.new_ensemble(
                 self.grid_shape, self.sysnum, self.p,
-                self.identical, self.randflip)
+                self.identical)
 
         self.iterations = [self.init_state]
         self.iternum = 1
         self.final_state = self.init_state
+
+        if self.randflip:
+            self.do_randflip()
 
     def ensemble_avg(self, func):
         """

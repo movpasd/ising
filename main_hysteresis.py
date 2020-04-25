@@ -1,0 +1,2 @@
+"""Investigating hysteresis effects"""
+

@@ -8,6 +8,7 @@ from ising import datagen, thermo
 
 
 datapath = Path(__file__).parents[0] / "data/energy"
+resultspath = Path(__file__).parents[0] / "results/energy"
 mmagdatapath = Path(__file__).parents[0] / "data/meanmag"
 
 
@@ -23,7 +24,7 @@ mmagdatapath = Path(__file__).parents[0] / "data/meanmag"
 # flucts = []  # same with this
 
 
-# print("Calculating")
+print("Calculating")
 
 
 # for k, ens in enumerate(dataset.ensembles):
@@ -40,9 +41,6 @@ mmagdatapath = Path(__file__).parents[0] / "data/meanmag"
 # flucts = np.stack(flucts, axis=0)
 # np.save(datapath / "energies.npy", energies)
 # np.save(datapath / "flucts.npy", flucts)
-
-
-print("Plotting")
 
 
 bs = np.load(datapath / "bs.npy")
@@ -77,10 +75,10 @@ caps = -midbs**2 * dE_db
 #
 # b and a are known exactly, so it's just the numerator error we need
 
-rel_caperrors = (np.sqrt(err_energies[1:]**2 + err_energies[:-1]**2)
+rel_err_caps = (np.sqrt(err_energies[1:]**2 + err_energies[:-1]**2)
                  / np.abs(np.diff(est_energies)))
 
-caperrors = caps * rel_caperrors
+err_caps = caps * rel_err_caps
 
 # Second method for calculating the heat capacity, using the
 # fluctuation dissipation theorem
@@ -93,20 +91,26 @@ est_flucts = np.mean(flucts, axis=1)
 err_flucts = np.std(flucts, axis=1) / np.sqrt(sysnum)
 
 # Note "kb = 1" because of the units we chose to measure temp. with
-cap2s = est_flucts**2 * bs**2
-cap2errors = 2 * est_flucts * bs**2 * err_flucts  # basic err. prop.
+fd_caps = est_flucts**2 * bs**2
+fd_caperrors = 2 * est_flucts * bs**2 * err_flucts  # basic err. prop.
+
+
+print("Plotting")
+
 
 plt.figure(figsize=(12, 8))
 
-plt.errorbar(Ts, caps, caperrors, fmt="kx", ms=8, ecolor="r", elinewidth=1.5)
-plt.errorbar(1 / bs, cap2s, cap2errors,
-             fmt="bx", ms=8, ecolor=(.7, .8, 0), elinewidth=1.5)
+plt.errorbar(Ts, caps, err_caps, fmt="kx", ms=8, ecolor="r", elinewidth=1.5)
+plt.errorbar(1 / bs[1:], fd_caps[1:], fd_caperrors[1:],  # exclude b=0
+             fmt="bx", ms=8, ecolor=(.8, .7, 0), elinewidth=1.5)
 
-plt.legend(["numerical", "F.-D. theorem"])
+plt.legend(["numerical", "F.-D."])
 
 plt.title("Heat capacity versus temperature, N=30, "
-          "calculated via 2 methods")
+          "compared to F.D. theorem prediction")
 plt.xlabel("$T$")
 plt.ylabel("C")
 
+plt.savefig(resultspath / "fd_cap.pdf")
 plt.show()
+plt.close()

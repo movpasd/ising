@@ -9,8 +9,8 @@ from warnings import warn
 from ising import datagen, loadingbar, plotter, simulator, thermo
 
 
-datapath = Path(__file__).parents[1] / "data/autoc"
-resultspath = Path(__file__).parents[1] / "results/autoc"
+datapath = Path(__file__).parents[1] / "data/autoc-new"
+resultspath = Path(__file__).parents[1] / "results/autoc-new"
 
 
 # GENERATION PARAMETERS
@@ -20,8 +20,10 @@ resultspath = Path(__file__).parents[1] / "results/autoc"
 # we can convert between (id_N, id_b) <--> k, the index
 # which labels ensembles in the datagen.DataSet.
 
-Ns = []
-bs = []
+Ns = [20, 15, 10, 5]
+bs = [0, 0.2, 0.3, 0.4,
+      0.42, 0.44, 0.46, 0.48, 0.50,
+      0.52, 0.54, 0.6, 0.7, 0.8, 1.0]
 kcount = len(Ns) * len(bs)
 
 # These arrays help quickly switch from (id_N, id_b) indexing to k-indexing
@@ -38,10 +40,10 @@ b_crit = 0  # the relaxation time is short enough that it doesn't really matter
 
 # Largest autocorrelation lag to calculate up to
 # The bigger this is, the less time over which M'(t)M'(t+tau) is averaged
-maxtau = 300
+maxtau = 100
 
 
-def generate(wipe, iternum, relaxtime=None):
+def generate(wipe, iternum, relaxtime=None, bmin=0, bmax=1):
     """Generate and save all required data"""
 
     dataset = datagen.DataSet(datapath)
@@ -86,9 +88,12 @@ def generate(wipe, iternum, relaxtime=None):
             b = ens.b
             N = ens.grid_shape[0]
 
-            print(f"k: {k} >> N={N}, b={b:.2f}")
-            ens.simulate(iternum, reset=False, verbose=True)
-            dataset.save(ens_index=k)
+            if (bmin <= b <= bmax) and (N == 5 or N == 10):
+    
+                print(f"k: {k} >> N={N}, b={b:.2f}, "
+                      f"iterations: {ens.iternum} -> {ens.iternum + iternum}")
+                ens.simulate(iternum, reset=False, verbose=True)
+                dataset.save(ens_index=k)
 
 
 def display_mosaic(k):
