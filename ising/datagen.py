@@ -1,6 +1,7 @@
 """Module for generation and analysis of large data sets"""
 
 import numpy as np
+import numpy.random as npr
 import json
 from pathlib import Path
 from warnings import warn
@@ -241,3 +242,22 @@ class Ensemble:
         self.iternum -= trimcount
         self.iterations = self.iterations[trimcount:]
         self.init_state = self.iterations[0]
+
+
+    def do_randflip(self):
+        """
+        Randomly flip some members of the ensemble
+
+        Used to restore symmetry after spontaneous symmetry breaking
+        """
+
+        sysnum, Nx, Ny = self.init_state.shape
+
+        for s in range(sysnum):
+
+            if npr.randint(0, 2) == 0:
+
+                for t in range(self.iternum):
+
+                    state = self.iterations[t]
+                    state[s] *= -1

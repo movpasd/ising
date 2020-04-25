@@ -8,7 +8,7 @@ from pathlib import Path
 from tasks import autoc
 
 
-autoc.generate(wipe=False, iternum=400, relaxtime=200)
+autoc.generate(wipe=False, iternum=500)
 
 # autoc.analyse()
 # autoc.results()

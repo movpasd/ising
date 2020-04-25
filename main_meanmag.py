@@ -1,3 +1,7 @@
 """Calculation of mean magnetisation variation with temperature"""
 
-import tasks.mainmag
+from tasks import mainmag
+
+# mainmag.create_dataset()
+# mainmag.analyse()
+mainmag.results()

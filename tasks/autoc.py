@@ -9,7 +9,7 @@ from warnings import warn
 from ising import datagen, loadingbar, plotter, simulator, thermo
 
 
-datapath = Path(__file__).parents[1] / "data/autoc-night"
+datapath = Path(__file__).parents[1] / "data/autoc"
 resultspath = Path(__file__).parents[1] / "results/autoc"
 
 
@@ -20,10 +20,8 @@ resultspath = Path(__file__).parents[1] / "results/autoc"
 # we can convert between (id_N, id_b) <--> k, the index
 # which labels ensembles in the datagen.DataSet.
 
-Ns = [5, 10, 30, 50]
-bs = [0.4,
-      0.41, 0.42, 0.43, 0.44, 0.45, 0.46, 0.47, 0.48, 0.49, 0.5
-      ]
+Ns = []
+bs = []
 kcount = len(Ns) * len(bs)
 
 # These arrays help quickly switch from (id_N, id_b) indexing to k-indexing
@@ -31,7 +29,7 @@ Nb_to_ks = [[i * len(bs) + j for j in range(len(bs))] for i in range(len(Ns))]
 k_to_Nbs = [(Ns[k // len(bs)], bs[k % len(bs)])
             for k in range(kcount)]
 
-sysnum = 49
+sysnum = 30
 b_crit = 0  # the relaxation time is short enough that it doesn't really matter
 
 
@@ -40,10 +38,10 @@ b_crit = 0  # the relaxation time is short enough that it doesn't really matter
 
 # Largest autocorrelation lag to calculate up to
 # The bigger this is, the less time over which M'(t)M'(t+tau) is averaged
-maxtau = 200
+maxtau = 300
 
 
-def generate(wipe, iternum, relaxtime):
+def generate(wipe, iternum, relaxtime=None):
     """Generate and save all required data"""
 
     dataset = datagen.DataSet(datapath)
@@ -51,6 +49,9 @@ def generate(wipe, iternum, relaxtime):
     assert type(wipe) is bool
 
     if wipe == True:
+
+        if relaxtime is None:
+            raise ValueError("need a relaxtime")
 
         print("Wiping dataset")
         dataset.wipe()
@@ -79,18 +80,15 @@ def generate(wipe, iternum, relaxtime):
         print("Loading dataset")
         dataset.load()
 
-        bmin = 0.4
-        bmax = 0.5
-
         print("Updating dataset")
         for k, ens in enumerate(dataset.ensembles):
 
-            if (ens.b > bmax or ens.b < bmin) and ens.grid_shape[0] == 30:
+            b = ens.b
+            N = ens.grid_shape[0]
 
-                print(f"k: {k} >> N={ens.grid_shape[0]}, b={ens.b:.2f}")
-                ens.simulate(iternum, reset=False, verbose=True)
-    
-                dataset.save(ens_index=k)
+            print(f"k: {k} >> N={N}, b={b:.2f}")
+            ens.simulate(iternum, reset=False, verbose=True)
+            dataset.save(ens_index=k)
 
 
 def display_mosaic(k):
@@ -158,13 +156,15 @@ def analyse():
         else:
 
             tau_es.append(None)
-            print("oops")
 
-            # # If that fails, then take the logarithm of the values and
-            # # calculate a linear regression
+            # If that fails, then take the logarithm of the values and
+            # calculate a linear regression
 
             # logs = np.log(autocs)
             # reg = linregress(range(autocs.shape[-1]), logs)
+
+            # print(f"oops N{ens.grid_shape}, b{ens.b}")
+            # print(f"slope {reg[0]:.4f}, r {reg[2]:.4f}")
 
             # slope = reg[0]
 
@@ -200,6 +200,12 @@ def results():
             vals.append(tau_es[k])
 
         plt.plot(bs, vals, "-")
+
+    plt.title("Auto-correlation e-folding timelag for "
+              "variable temperatures, grid sizes")
+
+    plt.xlabel("$\\beta$")
+    plt.ylabel("$\\tau_e$")
 
     plt.legend([f"N={N}" for N in Ns])
 
@@ -266,10 +272,26 @@ def mosaics():
 
         N, b = ens.grid_shape[0], ens.b
 
-        if (N == 5) and 0.495 < b < 0.505:
+        if (N < 35) and 0.435 < b < 0.445:
 
             print(f"k{k} | N{ens.grid_shape[0]} b{ens.b}")
             fig, _, _ = plotter.animate_mosaic(
                 ens, timestamp=True,
                 saveas=resultspath / f"mosaic-{k}.mp4"
             )
+
+
+def randflip():
+
+    # I had to write this function because the data I generated didn't
+    # properly randomise the initial conditions (half systems fully aligned
+    # spin up, half systems fully aligned spin down)
+
+    dataset = datagen.DataSet(datapath)
+    dataset.load()
+
+    for k, ens in enumerate(dataset.ensembles):
+
+        print(k)
+        ens.do_randflip()
+        dataset.save(k)

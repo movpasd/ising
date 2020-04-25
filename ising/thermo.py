@@ -25,8 +25,13 @@ def square_mag(a):
 def energy(a, h=0):
     """Calculate energy of a grid"""
 
+    # Each nearest-neighbour pair is either bottom-top or left-right.
+    # To sum over every possible nearest-neighbour pair, generate
+    # all bottom-top pairs and left-right pairs separately and add
     b = np.roll(a, 1, axis=-1)
     c = np.roll(a, 1, axis=-2)
+
+    return -np.sum(a * b + a * c, axis=(-1, -2))
 
 
 def autocovariance(samples, maxtau=None, axis=-1, rem_dc=True):
@@ -46,7 +51,7 @@ def autocovariance(samples, maxtau=None, axis=-1, rem_dc=True):
         assert type(maxtau) is int and maxtau <= iternum
 
     if rem_dc:
-        samples = np.copy(samples - np.mean(samples))
+        samples = np.copy(samples - np.mean(samples, axis=axis))
 
     autoc_values = []
     for tau in range(maxtau):

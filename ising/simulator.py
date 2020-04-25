@@ -50,7 +50,7 @@ def new_ensemble(grid_shape, sysnum, p=0.5, identical=False, randflip=False):
 
     if randflip:
 
-        ret *= (-1)**npr.randint(0, 2)
+        ret *= (-1)**npr.randint(0, 2, size=(sysnum, 1, 1))
 
     return ret
 
