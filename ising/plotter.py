@@ -199,7 +199,7 @@ def animate_mosaic(ensemble, fig=None, timestamp=False, verbose=False,
 
     if saveas is not None:
 
-        saveas = Path(saveas).with_suffix(".mp4")
+        saveas = str(Path(saveas).with_suffix(".mp4"))
         anim.save(saveas)
 
     if show:

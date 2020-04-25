@@ -22,6 +22,13 @@ def square_mag(a):
     return np.mean(a, axis=(-1, -2))**2
 
 
+def energy(a, h=0):
+    """Calculate energy of a grid"""
+
+    b = np.roll(a, 1, axis=-1)
+    c = np.roll(a, 1, axis=-2)
+
+
 def autocovariance(samples, maxtau=None, axis=-1, rem_dc=True):
     """
     Calculate the auto-correlation of a sampled function of time

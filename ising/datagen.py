@@ -129,7 +129,8 @@ class DataSet:
 class Ensemble:
     """Ensemble of states with similar init conditions and parameters"""
 
-    def __init__(self, grid_shape, sysnum, p, b, h, identical=False, initialise=True):
+    def __init__(self, grid_shape, sysnum, p, b, h,
+                 identical=False, initialise=True, randflip=False):
         """
         grid_shape: (int, int)
         sysnum: int -- number of systems in the ensemble
@@ -147,6 +148,7 @@ class Ensemble:
         self.p = p
         self.b = b
         self.h = h
+        self.randflip = randflip
 
         if initialise:
             self.reset(regen_init=True)
@@ -156,7 +158,7 @@ class Ensemble:
         if reset:
             self.reset(regen_init=regen_init)
             iternum -= 1  # This makes sure self.iternum matches up with
-                          # the parameter passed onto this function
+            # the parameter passed onto this function
 
         if verbose:
             bar = loadingbar.LoadingBar(iternum)
@@ -183,7 +185,8 @@ class Ensemble:
 
         if regen_init:
             self.init_state = simulator.new_ensemble(
-                self.grid_shape, self.sysnum, self.p, self.identical)
+                self.grid_shape, self.sysnum, self.p,
+                self.identical, self.randflip)
 
         self.iterations = [self.init_state]
         self.iternum = 1

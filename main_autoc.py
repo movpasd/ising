@@ -8,6 +8,8 @@ from pathlib import Path
 from tasks import autoc
 
 
-autoc.generate(wipe=False)
-autoc.analyse()
-autoc.results()
+autoc.generate(wipe=False, iternum=400, relaxtime=200)
+
+# autoc.analyse()
+# autoc.results()
+# autoc.mosaics()

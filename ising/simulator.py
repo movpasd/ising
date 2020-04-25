@@ -26,7 +26,7 @@ def new_grid(grid_shape, p=0.5):
     return 2 * (npr.rand(*grid_shape) > p) - 1
 
 
-def new_ensemble(grid_shape, sysnum, p=0.5, identical=False):
+def new_ensemble(grid_shape, sysnum, p=0.5, identical=False, randflip=False):
     """
     Create a new statistical ensemble of initial states
 
@@ -44,9 +44,15 @@ def new_ensemble(grid_shape, sysnum, p=0.5, identical=False):
 
     if identical:
         a = 2 * (npr.rand(*grid_shape) > p) - 1
-        return np.repeat(a[nwxs, ...], sysnum, axis=0)
+        ret = np.repeat(a[nwxs, ...], sysnum, axis=0)
     else:
-        return 2 * (npr.rand(sysnum, *grid_shape) > p) - 1
+        ret = 2 * (npr.rand(sysnum, *grid_shape) > p) - 1
+
+    if randflip:
+
+        ret *= (-1)**npr.randint(0, 2)
+
+    return ret
 
 
 def _rand_flip_spin(spins, bs, hs, Nx, Ny):
@@ -57,19 +63,17 @@ def _rand_flip_spin(spins, bs, hs, Nx, Ny):
     """
 
     # Pick out one random spin
-    i = int(npr.rand() * Nx)
-    j = int(npr.rand() * Ny)
-    s = spins[i, j]
-    # Find the spin's neighbours
-    neighbours = (
-        spins[(i + 1) % Nx, j],
-        spins[i - 1, j],
-        spins[i, (j + 1) % Ny],
-        spins[i, j - 1]
-    )
+    i = npr.randint(0, Nx)
+    j = npr.randint(0, Ny)
 
     # Calculate Delta E
-    dE = (np.sum(neighbours) + hs[i, j]) * s
+    dE = (
+        spins[(i + 1) % Nx, j] +
+        spins[i - 1, j] +
+        spins[i, (j + 1) % Ny] +
+        spins[i, j - 1] +
+        hs[i, j]
+    ) * spins[i, j]
 
     # Choose whether to flip it or not!
     if np.exp(-2 * bs[i, j] * dE) > npr.rand():
