@@ -89,7 +89,7 @@ def generate(wipe, iternum, relaxtime=None, bmin=0, bmax=1):
             N = ens.grid_shape[0]
 
             if (bmin <= b <= bmax) and (N == 5 or N == 10):
-    
+
                 print(f"k: {k} >> N={N}, b={b:.2f}, "
                       f"iterations: {ens.iternum} -> {ens.iternum + iternum}")
                 ens.simulate(iternum, reset=False, verbose=True)
@@ -142,18 +142,17 @@ def analyse():
         # 2. Calculate the autocorrelation as a function of tau (time lag)
         #    and save to file
 
-        # Calculate autocorrelation of each member of the ensembles and
-        # then take average over ensemble
+        # Calculate autocorrelation of each member of the ensembles.
+        # Averaging over ensemble is done during analysis.
         autocs = thermo.autocorrelation(mags, maxtau, axis=0)
-        autocs = np.mean(autocs, axis=1)
         np.save(datapath / f"autocs-{k}.npy", autocs)
 
         # 3. Calculate the e-folding time
 
         # First, simply try finding the time step at which the
-        # autoc drops below 1/e
+        # ens-avgd autoc drops below 1/e
 
-        ids = np.argwhere(autocs < 1 / np.e)
+        ids = np.argwhere(np.mean(autocs, axis=1) < 1 / np.e)
         if len(ids) > 0:
 
             tau_es.append(ids[0])
@@ -249,6 +248,9 @@ def results():
 
     for i, N in enumerate(Ns):
 
+        plt.figure(figsize=(12, 8))
+        plt.axes(position=[.05, .05, .75, .9])
+
         plt.title(f"Auto-correlation N={N}")
         plt.xlabel("$ \\tau $")
         plt.ylabel("$ A(\\tau) $")
@@ -258,10 +260,18 @@ def results():
             c = np.max([0, np.min([1, 10 * (b - 0.4)])])
 
             k = Nb_to_ks[i][j]
-            vals = autocs_list[k]
-            plt.plot(vals, color=(1 - c, 0, c))
+            autocs = np.load(datapath / f"autocs-{k}.npy")
 
-        plt.legend(bs)
+            iternum = autocs.shape[0]
+            sysnum = autocs.shape[1]
+            vals = np.mean(autocs, axis=1)
+            errs = np.std(autocs, axis=1, ddof=1) / np.sqrt(sysnum)
+
+            plt.errorbar(range(iternum), vals, errs,
+                         color=(1 - c, 0, c), ecolor=(1 - c, 0, c, 0.4),
+                         elinewidth=1.5)
+
+        plt.legend(bs, loc='center left', bbox_to_anchor=(1, 0.5))
 
         plt.savefig(resultspath / f"autocs-{N}.pdf")
         # plt.show()
@@ -277,7 +287,7 @@ def mosaics():
 
         N, b = ens.grid_shape[0], ens.b
 
-        if (N < 35) and 0.435 < b < 0.445:
+        if (N == 5 or N == 10) and 0.48 <= b <= 0.6:
 
             print(f"k{k} | N{ens.grid_shape[0]} b{ens.b}")
             fig, _, _ = plotter.animate_mosaic(

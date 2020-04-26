@@ -72,23 +72,24 @@ def find_energy(N, T, tol, sysnum=20):
 
 
 def calculate(Ns, Ts, tol):
-    
-    for N in Ns:
-    
-        ests = []
-        errs = []
-    
-        for T in Ts:
-    
-            est, err = find_energy(N, T, tol)
-            ests.append(est)
-            errs.append(err)
-    
-            print()
-    
-        np.save(datapath / f"ests-N{N}.npy", np.array(ests))
-        np.save(datapath / f"errs-N{N}.npy", np.array(errs))
 
+    for N in Ns:
+
+        if N == 3:
+
+            ests = []
+            errs = []
+
+            for T in Ts:
+
+                est, err = find_energy(N, T, tol)
+                ests.append(est)
+                errs.append(err)
+
+                print()
+
+            np.save(datapath / f"ests-N{N}.npy", np.array(ests))
+            np.save(datapath / f"errs-N{N}.npy", np.array(errs))
 
 
 def results(Ns, Ts):
@@ -96,28 +97,56 @@ def results(Ns, Ts):
     plt.figure(figsize=(12, 8))
 
     # colours
-    cs = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0.7, 0.7, 0)]
+    cs = [(.9, 0, 0), (.8, .7, 0), (0, .8, 0), (0, .7, .7),
+          (0, 0, .9), (.7, 0, .7), (.5, .5, .5)]
 
     for k, N in enumerate(Ns):
 
-        est = np.load(datapath / f"ests-N{N}.npy")
-        err = np.load(datapath / f"errs-N{N}.npy")
+        ests = np.load(datapath / f"ests-N{N}.npy")
+        errs = np.load(datapath / f"errs-N{N}.npy")
 
-        plt.errorbar(Ts, est / N**2, err / N**2, 
-            fmt="x", color=cs[k], markersize=8,
-            ecolor=cs[k] + (0.5,), elinewidth=1)
+        # plt.errorbar(Ts, est / N**2, err / N**2,
+        #              fmt="x", color=cs[k], markersize=8,
+        #              ecolor=cs[k] + (0.5,), elinewidth=1)
 
-    plt.legend([f"N = {N}" for N in Ns])
+        midTs = (Ts[1:] + Ts[:-1]) / 2
+        caps = np.diff(ests) / np.diff(Ts) / N**2
+        caperrs = np.sqrt(errs[1:]**2 + errs[:-1]**2) / \
+            np.abs(np.diff(Ts)) / N**2
 
-    plt.title("Average specific energy versus temperature for various N")
+        # Average over rolling window of width w
+        w = 20
+
+        # Average over appropriate range
+        ks = np.argwhere(np.logical_and(2 <= midTs, midTs <= 4))[:, 0]
+        ki, kf = ks[0], ks[-1] + 1
+        
+        sqcaperrs = caperrs**2
+
+        w_midTs = thermo.rolling_average(midTs[ki:kf], w)
+        midTs = np.concatenate([midTs[:ki], w_midTs, midTs[kf:]])
+        w_caps = thermo.rolling_average(caps[ki:kf], w)
+        caps = np.concatenate([caps[:ki], w_caps, caps[kf:]])
+        w_sqcaperrs = thermo.rolling_average(sqcaperrs[ki:kf], w) / w
+        sqcaperrs = np.concatenate([sqcaperrs[:ki], w_sqcaperrs, sqcaperrs[kf:]])
+        caperrs = np.sqrt(sqcaperrs)
+
+        plt.errorbar(midTs, caps, caperrs,
+                     fmt="-", color=cs[k], ecolor=cs[k] + (0.2,), elinewidth=3)
+
+    T_ons = 2 / np.log(1 + np.sqrt(2))
+    plt.plot([T_ons, T_ons], [0, 1.25], "k--")
+
+    plt.legend(["$T_{ons}$"] + [f"N = {N}" for N in Ns])
+
+    plt.title("Specific heat capacity versus temperature for various N")
     plt.xlabel("Temperature")
-    plt.ylabel("Specific energy $E/N^2$")
+    plt.ylabel("Specific heat capacity $C/N^2$")
 
-    plt.savefig("energy.pdf")
+    plt.savefig(resultspath / "caps.pdf")
     plt.show()
     plt.close()
 
-    
 
 ranges = [
     (1, 2, 0.2),
@@ -128,5 +157,5 @@ ranges = [
 Ns = [12, 8, 6, 5, 4, 3, 2]
 Ts = np.concatenate([np.arange(*r) for r in ranges])
 
-calculate(Ns, Ts, tol=0.005)
+# calculate(Ns, Ts, tol=0.005)
 results(Ns, Ts)
