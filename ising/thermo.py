@@ -7,8 +7,8 @@ def magnetisation(a):
     """
     Calculate mean magnetisation
 
-    a: int (Nx, Ny)- OR (iternum, Nx, Ny)-array
-    RETURNS: float or float (iternum,)-array
+    a: (..., Nx, Ny)-array
+    RETURNS: (...,)-array
     """
 
     return np.mean(a, axis=(-1, -2))
@@ -23,7 +23,12 @@ def square_mag(a):
 
 
 def energy(a, h=0):
-    """Calculate energy of a grid"""
+    """
+    Calculate energy of a grid
+    
+    Takes a (..., Nx, Ny)-array
+    Returns a (...,)-array
+    """
 
     # Each nearest-neighbour pair is either bottom-top or left-right.
     # To sum over every possible nearest-neighbour pair, generate

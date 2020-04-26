@@ -144,7 +144,7 @@ def analyse():
 
         # Calculate autocorrelation of each member of the ensembles.
         # Averaging over ensemble is done during analysis.
-        autocs = thermo.autocorrelation(mags, maxtau, axis=0)
+        autocs = thermo.autocorrelation(np.abs(mags), maxtau, axis=0)
         np.save(datapath / f"autocs-{k}.npy", autocs)
 
         # 3. Calculate the e-folding time
@@ -248,10 +248,10 @@ def results():
 
     for i, N in enumerate(Ns):
 
-        plt.figure(figsize=(12, 8))
-        plt.axes(position=[.05, .05, .75, .9])
+        plt.figure(figsize=(8, 6))
+        plt.axes(position=[.05, .05, .8, .9])
 
-        plt.title(f"Auto-correlation N={N}")
+        plt.title(f"Auto-correlation of $|M|$ with N={N}")
         plt.xlabel("$ \\tau $")
         plt.ylabel("$ A(\\tau) $")
 
