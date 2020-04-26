@@ -160,19 +160,7 @@ def analyse():
         else:
 
             tau_es.append(None)
-
-            # If that fails, then take the logarithm of the values and
-            # calculate a linear regression
-
-            # logs = np.log(autocs)
-            # reg = linregress(range(autocs.shape[-1]), logs)
-
-            # print(f"oops N{ens.grid_shape}, b{ens.b}")
-            # print(f"slope {reg[0]:.4f}, r {reg[2]:.4f}")
-
-            # slope = reg[0]
-
-            # tau_es.append(-1 / slope)
+            print(f"Found no tau_e for k{k}!")
 
     # Save the e-folding lengths
     np.save(datapath / "tau_es.npy", np.array(tau_es))
@@ -270,6 +258,8 @@ def results():
             plt.errorbar(range(iternum), vals, errs,
                          color=(1 - c, 0, c), ecolor=(1 - c, 0, c, 0.4),
                          elinewidth=1.5)
+
+            # plt.plot(np.log(vals))
 
         plt.legend(bs, loc='center left', bbox_to_anchor=(1, 0.5))
 

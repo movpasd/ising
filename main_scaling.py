@@ -106,7 +106,8 @@ def results(Ns, Ts):
         errs = np.load(datapath / f"errs-N{N}.npy")
 
         plt.errorbar(Ts, ests / N**2, errs / N**2,
-                     fmt="x", color=cs[k], ecolor=cs[k] + (0.2,), elinewidth=3)
+                     fmt="s", markersize=1, color=cs[k],
+                     ecolor=cs[k] + (0.3,), elinewidth=3)
 
     T_ons = 2 / np.log(1 + np.sqrt(2))
     plt.plot([T_ons, T_ons], [0, 1.25], "k--")
@@ -114,7 +115,7 @@ def results(Ns, Ts):
     plt.legend(["$T_{ons}$"] + [f"N = {N}" for N in Ns])
 
     plt.title("Specific heat capacity versus temperature for various N\n"
-        "Calculated via F.-D. theorem")
+              "Calculated via F.-D. theorem")
     plt.xlabel("Temperature")
     plt.ylabel("Specific heat capacity $C/N^2$")
 
@@ -129,8 +130,8 @@ ranges = [
     (4, 5.1, 0.1)
 ]
 
-Ns = [2, 3, 4, 5, 6, 7, 8, 12]
+Ns = [2, 3, 4, 5, 6, 7, 8]
 Ts = np.concatenate([np.arange(*r) for r in ranges])
 
-calculate(Ns, Ts, tol=0.05)
+# calculate(Ns, Ts, tol=0.05)
 results(Ns, Ts)
