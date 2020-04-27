@@ -25,7 +25,7 @@ def square_mag(a):
 def energy(a, h=0):
     """
     Calculate energy of a grid
-    
+
     Takes a (..., Nx, Ny)-array
     Returns a (...,)-array
     """
@@ -36,7 +36,7 @@ def energy(a, h=0):
     b = np.roll(a, 1, axis=-1)
     c = np.roll(a, 1, axis=-2)
 
-    return -np.sum(a * b + a * c, axis=(-1, -2))
+    return -np.sum((b + c + h) * a, axis=(-1, -2))
 
 
 def autocovariance(samples, maxtau=None, axis=-1, rem_dc=True):

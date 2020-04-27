@@ -112,6 +112,19 @@ def display_mosaic(k):
     plt.close(fig)
 
 
+def whatareks():
+    """display metadata for ensembles"""
+
+    print("loading data")
+    dataset = datagen.DataSet(datapath)
+    dataset.load()
+
+    for k, ens in enumerate(dataset.ensembles):
+
+        print(
+            f"k: {k} --> b={ens.b}, N={ens.grid_shape[0]}, iternum={ens.iternum}")
+
+
 def analyse():
     """Analyse the data"""
 
@@ -268,22 +281,22 @@ def results():
         plt.close()
 
 
-def mosaics():
+def mosaics(ks):
 
     dataset = datagen.DataSet(datapath)
     dataset.load()
 
-    for k, ens in enumerate(dataset.ensembles):
+    for k in ks:
+
+        ens = dataset.ensembles[k]
 
         N, b = ens.grid_shape[0], ens.b
-
-        if (N == 5 or N == 10) and 0.48 <= b <= 0.6:
-
-            print(f"k{k} | N{ens.grid_shape[0]} b{ens.b}")
-            fig, _, _ = plotter.animate_mosaic(
-                ens, timestamp=True,
-                saveas=resultspath / f"mosaic-{k}.mp4"
-            )
+    
+        print(f"k{k} | N{ens.grid_shape[0]} b{ens.b}")
+        fig, _, _ = plotter.animate_mosaic(
+            ens, timestamp=True,
+            saveas=resultspath / f"mosaic-{k}.mp4"
+        )
 
 
 def randflip():

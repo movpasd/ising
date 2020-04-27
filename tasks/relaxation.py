@@ -117,6 +117,8 @@ def graph(resultspath, *args, save=True, show=False):
 
         for init_condition, index in zip(["aligned", "random"], [0, 1]):
 
+            plt.figure(figsize=(8, 6))
+
             c = 0
             dc = 1 / 11
 
@@ -124,8 +126,11 @@ def graph(resultspath, *args, save=True, show=False):
                 plt.plot(values, color=(1 - c, 0, c))
                 c += dc
 
-            plt.title(f"{filename}, initially {init_condition}")
+            # plt.title(f"{filename}, initially {init_condition}")
             plt.legend([f"{k * 0.1: .2f}" for k in range(11)])
+
+            plt.xlabel("Time")
+            plt.ylabel("Rolling average of $d(M^2)/dt$")
 
             if save:
                 plt.savefig(path / f"{init_condition}-{filename}.pdf")

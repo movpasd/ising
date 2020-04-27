@@ -1,8 +1,10 @@
 """
-Studying heat capacity across different Ns
+Attempt at studying heat capacity across different Ns
 
 I thought it would be easier to just copy paste the code from main_energy
 rather than modify it to work for multiple Ns.
+
+In the end opted for a F.d. solution -- see main_scaling.py
 """
 
 import numpy as np

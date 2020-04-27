@@ -49,7 +49,7 @@ flucts = np.load(datapath / "flucts.npy")
 
 sysnum = energies.shape[1]
 
-# Best estimates obtained by averaging over each ensemble
+# Best estimates and error obtained by averaging over each ensemble
 est_energies = np.mean(energies, axis=1)
 err_energies = np.std(energies, axis=1) / np.sqrt(sysnum)
 
@@ -69,9 +69,9 @@ caps = -midbs**2 * dE_db
 # numerical errors. So we can just use regular error propagation
 # as applied to the finite-difference derivative formula,
 #
-#             f(b) - f(a)
-#    df/dx ~= -----------
-#                b - a
+#                       f(b) - f(a)
+#    df/dx ((b+a)/2) ~= -----------
+#                          b - a
 #
 # b and a are known exactly, so it's just the numerator error we need
 
@@ -104,7 +104,10 @@ plt.errorbar(Ts, caps, err_caps, fmt="kx", ms=8, ecolor="r", elinewidth=1.5)
 plt.errorbar(1 / bs[1:], fd_caps[1:], fd_caperrors[1:],  # exclude b=0
              fmt="bx", ms=8, ecolor=(.8, .7, 0), elinewidth=1.5)
 
-plt.legend(["numerical", "F.-D."])
+Tons = 2 / np.log(1 + np.sqrt(2))
+plt.plot([Tons, Tons], [0, 1750], "k--")
+
+plt.legend(["$T_{ons}$", "numerical", "F.-D."])
 
 plt.title("Heat capacity versus temperature, N=30, "
           "compared to F.D. theorem prediction")

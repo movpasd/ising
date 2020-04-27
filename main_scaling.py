@@ -54,6 +54,8 @@ def find_heat_capacity(N, T, tol, sysnum=20):
         est_fluct = np.mean(flucts)
         err_fluct = np.std(flucts, ddof=1) / np.sqrt(sysnum)
 
+        # Error propagation!
+
         est_cap = est_fluct**2 * b**2
         err_cap = 2 * err_fluct * est_fluct * b**2
 
@@ -134,4 +136,17 @@ Ns = [2, 3, 4, 5, 6, 7, 8]
 Ts = np.concatenate([np.arange(*r) for r in ranges])
 
 # calculate(Ns, Ts, tol=0.05)
-results(Ns, Ts)
+
+# results(Ns, Ts)
+
+Tcs = [2.6, 2.47, 2.45, 2.41, 2.4, 2.37, 2.36]
+errs = [.1, .08, .07, .06, .06, .03, .04]
+
+plt.errorbar(Ns, Tcs, errs,
+    fmt="x", color="k", ecolor="r", elinewidth=2)
+
+plt.xlabel("N")
+plt.ylabel("$T_c$")
+
+plt.savefig(resultspath / "Tcs.pdf")
+plt.show()

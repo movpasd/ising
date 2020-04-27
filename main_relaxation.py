@@ -41,8 +41,12 @@ a_autocs, r_autocs = np.load(datapath / "autocs.npy")
 # Drawing pretty magnetisation graphs
 # ------------------------------------------------------------------------
 
-# relaxation.graph(resultspath, sqmags, diffs, smoothed_diffs,
-#                  save=True, show=False)
+sqmags = [a_sqmags, r_sqmags]
+diffs = [a_diffs, r_diffs]
+smoothed_diffs = [a_smoothed_diffs, r_smoothed_diffs]
+
+relaxation.graph(resultspath, sqmags, diffs, smoothed_diffs,
+                 save=True, show=False)
 
 # Generating mosaic animations
 # ------------------------------------------------------------------------
@@ -71,26 +75,26 @@ a_autocs, r_autocs = np.load(datapath / "autocs.npy")
 # measured the time to metastable domained equilibrium rather than
 # true equilibrium where the whole grid goes to up or down.
 
-cutoff = 0.001
+# cutoff = 0.001
 
-bs = np.array(range(0, 11)) / 10
+# bs = np.array(range(0, 11)) / 10
 
-r_cutoffs = np.argmax(np.abs(r_smoothed_diffs) < cutoff, axis=-1)
-a_cutoffs = np.argmax(np.abs(a_smoothed_diffs) < cutoff, axis=-1)
+# r_cutoffs = np.argmax(np.abs(r_smoothed_diffs) < cutoff, axis=-1)
+# a_cutoffs = np.argmax(np.abs(a_smoothed_diffs) < cutoff, axis=-1)
 
-print("random", r_cutoffs)
-print("aligned", a_cutoffs)
+# print("random", r_cutoffs)
+# print("aligned", a_cutoffs)
 
-plt.close()
+# plt.close()
 
-plt.plot(bs, r_cutoffs, "r+", markersize=7)
-plt.plot(bs, a_cutoffs, "b+", markersize=7)
+# plt.plot(bs, r_cutoffs, "r+", markersize=7)
+# plt.plot(bs, a_cutoffs, "b+", markersize=7)
 
-plt.legend(["init. random", "init. aligned"])
+# plt.legend(["init. random", "init. aligned"])
 
-plt.xlabel("$ \\beta $")
-plt.ylabel("$ \\tau $")
-plt.title("Temperature dependence of relaxation time, 30x30 grid")
+# plt.xlabel("$ \\beta $")
+# plt.ylabel("$ \\tau $")
+# plt.title("Temperature dependence of relaxation time, 30x30 grid")
 
-plt.savefig(resultspath / "relaxtime.pdf")
-plt.show()
+# plt.savefig(resultspath / "relaxtime.pdf")
+# plt.show()

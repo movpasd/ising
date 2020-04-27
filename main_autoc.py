@@ -14,6 +14,9 @@ from tasks import autoc
 
 # autoc.generate(wipe=False, iternum=1000, bmin=0.4, bmax=0.6)
 
-autoc.analyse()
-autoc.results()
-# autoc.mosaics()
+autoc.whatareks()
+
+# autoc.analyse()
+# autoc.results()
+autoc.mosaics([13])
+
